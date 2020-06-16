@@ -49,19 +49,20 @@ static oe_result_t my_plugin_get_evidence(
     oe_result_t result = OE_OK;
     uint8_t* temp_buf = NULL;
 
-
-    if (flags == OE_EVIDENCE_FLAGS_REMOTE_ATTESTATION) {
-      // TODO: Remote attestation.
-      return OE_OK;
+    if (flags == OE_EVIDENCE_FLAGS_REMOTE_ATTESTATION)
+    {
+        // TODO: Remote attestation.
+        return OE_OK;
     }
 
     // Default is local attestation.
 
     // Grab the necessary data from the evidence.
-    struct my_plugin_attester_opt_params_t* opt_casted = (struct my_plugin_attester_opt_params_t*) opt_params;
+    struct my_plugin_attester_opt_params_t* opt_casted =
+        (struct my_plugin_attester_opt_params_t*)opt_params;
 
     result = oe_get_report(
-        0,      // get a local report
+        0, // get a local report
         opt_casted->sha256,
         sizeof(opt_casted->sha256),
         opt_casted->target_info_buffer,
@@ -100,18 +101,18 @@ static oe_result_t my_plugin_free_endorsements(
 }
 
 /* Setting up the plugin struct. */
-oe_attester_t my_plugin = {
-  .base = {
-    .format_id = MY_PLUGIN_UUID,
-    .on_register = my_plugin_on_register,
-    .on_unregister = my_plugin_on_unregister,
-  },
- .get_evidence = my_plugin_get_evidence,
- .free_evidence = my_plugin_free_evidence,
- .free_endorsements = my_plugin_free_endorsements
-};
+oe_attester_t my_plugin = {.base =
+                               {
+                                   .format_id = MY_PLUGIN_UUID,
+                                   .on_register = my_plugin_on_register,
+                                   .on_unregister = my_plugin_on_unregister,
+                               },
+                           .get_evidence = my_plugin_get_evidence,
+                           .free_evidence = my_plugin_free_evidence,
+                           .free_endorsements = my_plugin_free_endorsements};
 
 /* Implement helper initialization function. */
-oe_attester_t* my_plugin_attester() {
+oe_attester_t* my_plugin_attester()
+{
     return &my_plugin;
 }

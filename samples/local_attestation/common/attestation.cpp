@@ -32,8 +32,8 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
-    struct my_plugin_attester_opt_params_t* opt_params = malloc(sizeof(
-        struct my_plugin_attester_opt_params_t));
+    struct my_plugin_attester_opt_params_t* opt_params =
+        malloc(sizeof(struct my_plugin_attester_opt_params_t));
 
     opt_params->sha256 = sha256;
     opt_params->target_info_buffer = target_info_buffer;
@@ -98,7 +98,8 @@ bool Attestation::attest_local_report(
     TRACE_ENCLAVE("report_size = %ld", report_size);
 
     // 1) verify evidence
-    result = oe_verify_evidence(MY_PLUGIN_UUID,
+    result = oe_verify_evidence(
+        MY_PLUGIN_UUID,
         local_report,
         report_size,
         NULL,
@@ -110,8 +111,8 @@ bool Attestation::attest_local_report(
 
     if (result != OE_OK)
     {
-        TRACE_ENCLAVE("oe_verify_evidence failed (%s).\n",
-           oe_result_str(result));
+        TRACE_ENCLAVE(
+            "oe_verify_evidence failed (%s).\n", oe_result_str(result));
         goto exit;
     }
 

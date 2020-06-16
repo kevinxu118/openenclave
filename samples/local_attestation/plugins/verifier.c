@@ -11,11 +11,11 @@ recv(ENCLAVE_SOCKET_FD, endorsements, endorsements_size, 0);
 
 /* Set polices if desired. */
 oe_datetime_t time = {0};
-oe_policy_t policy = {
-    .type = OE_POLICY_ENDORSEMENTS_TIME,
-    .policy = &time,
-    .policy_size = sizeof(time);
-};
+oe_policy_t policy = {.type = OE_POLICY_ENDORSEMENTS_TIME,
+                      .policy = &time,
+                      .policy_size = sizeof(time);
+}
+;
 
 /* Verify evidence. Can check the claims if desired. */
 oe_verify_evidence(
