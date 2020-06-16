@@ -26,33 +26,38 @@ bool Attestation::generate_local_report(
     bool ret = false;
     uint8_t sha256[32];
     oe_result_t result = OE_OK;
-    uint8_t* temp_buf = NULL;
 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
         goto exit;
     }
 
+    struct my_plugin_attester_opt_params_t* opt_params = malloc(sizeof(
+        struct my_plugin_attester_opt_params_t));
+
+    opt_params->sha256 = sha256;
+    opt_params->target_info_buffer = target_info_buffer;
+    opt_params->target_info_size = target_info_size;
+
     // To generate a local report that just needs to be attested by another
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_get_report(
-        0,      // get a local report
-        sha256, // Store sha256 in report_data field
-        sizeof(sha256),
-        target_info_buffer,
-        target_info_size,
-        &temp_buf,
-        remote_report_buf_size);
-    if (result != OE_OK)
-    {
-        TRACE_ENCLAVE("oe_get_report failed.");
-        goto exit;
-    }
-    *report_buf = temp_buf;
-    ret = true;
-    TRACE_ENCLAVE("generate_local_report succeeded.");
+
+    result = oe_get_evidence(
+        MY_PLUGIN_UUID,
+        0,
+        NULL,
+        0,
+        opt_params,
+        sizeof(opt_params),
+        report_buf,
+        remote_report_buf_size,
+        NULL,
+        0);
+
+    return result;
+
 exit:
     return ret;
 }
@@ -80,6 +85,7 @@ bool Attestation::attest_local_report(
     uint8_t sha256[32];
     oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
+    oe_claim_t** required_claims;
 
     // While attesting, the report being attested must not be tampered
     // with. Ensure that it has been copied over to the enclave.
@@ -91,16 +97,25 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("report_size = %ld", report_size);
 
-    // 1)  Validate the report's trustworthiness
-    // Verify the report to ensure its authenticity.
-    result = oe_verify_report(local_report, report_size, &parsed_report);
+    // 1) verify evidence
+    result = oe_verify_evidence(MY_PLUGIN_UUID,
+        local_report,
+        report_size,
+        NULL,
+        0,
+        NULL,
+        0,
+        required_claims,
+        OE_REQUIRED_CLAIMS_COUNT);
+
     if (result != OE_OK)
     {
-        TRACE_ENCLAVE("oe_verify_report failed (%s).\n", oe_result_str(result));
+        TRACE_ENCLAVE("oe_verify_evidence failed (%s).\n",
+           oe_result_str(result));
         goto exit;
     }
 
-    TRACE_ENCLAVE("oe_verify_report succeeded\n");
+    TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
     // 2) validate the enclave identity's signed_id is the hash of the public
     // signing key that was used to sign an enclave. Check that the enclave was

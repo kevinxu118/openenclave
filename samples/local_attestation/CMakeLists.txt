@@ -13,6 +13,7 @@ add_subdirectory(common)
 add_subdirectory(enclave_a)
 add_subdirectory(enclave_b)
 add_subdirectory(host)
+add_subdirectory(plugins)
 
 add_custom_target(sign ALL DEPENDS enclave_a_signed enclave_b_signed)
 
