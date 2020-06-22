@@ -58,8 +58,7 @@ static oe_result_t my_plugin_get_evidence(
     // Default is local attestation.
 
     // Grab the necessary data from the evidence.
-    struct my_plugin_attester_opt_params_t* opt_casted =
-        (struct my_plugin_attester_opt_params_t*)opt_params;
+    struct my_plugin_attester_opt_params_t* opt_casted = (struct my_plugin_attester_opt_params_t*)opt_params;
 
     result = oe_get_report(
         0, // get a local report

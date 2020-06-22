@@ -4,6 +4,7 @@
 #include "attestation.h"
 #include <string.h>
 #include "log.h"
+#include <my_plugin_guid.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
@@ -32,8 +33,7 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
-    struct my_plugin_attester_opt_params_t* opt_params =
-        malloc(sizeof(struct my_plugin_attester_opt_params_t));
+    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*)oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
 
     opt_params->sha256 = sha256;
     opt_params->target_info_buffer = target_info_buffer;
@@ -85,7 +85,8 @@ bool Attestation::attest_local_report(
     uint8_t sha256[32];
     oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
-    oe_claim_t** required_claims;
+    oe_claim_t** required_claims = (oe_claim_t **)oe_malloc(sizeof(oe_claim_t *));
+    size_t* claims_size = (size_t *)oe_malloc(sizeof(size_t));
 
     // While attesting, the report being attested must not be tampered
     // with. Ensure that it has been copied over to the enclave.
@@ -107,7 +108,7 @@ bool Attestation::attest_local_report(
         NULL,
         0,
         required_claims,
-        OE_REQUIRED_CLAIMS_COUNT);
+        claims_size);
 
     if (result != OE_OK)
     {
@@ -118,64 +119,80 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
-    // 2) validate the enclave identity's signed_id is the hash of the public
-    // signing key that was used to sign an enclave. Check that the enclave was
-    // signed by an trusted entity.
-    if (memcmp(parsed_report.identity.signer_id, m_enclave_mrsigner, 32) != 0)
-    {
-        TRACE_ENCLAVE("identity.signer_id checking failed.");
-        TRACE_ENCLAVE(
-            "identity.signer_id %s", parsed_report.identity.signer_id);
+    oe_claim_t* my_claims = *required_claims;
 
-        for (int i = 0; i < 32; i++)
-        {
+    // Iterate through returned claims.
+
+    for(size_t j = 0; j < claims_size; j++) {
+
+      // 2) validate the enclave identity's signed_id is the hash of the public
+      // signing key that was used to sign an enclave. Check that the enclave was
+      // signed by an trusted entity.
+      if (strcmp(my_claims[j].name, OE_CLAIM_SIGNER_ID) == 0) {
+
+        if (memcmp(my_claims[j].value, m_enclave_mrsigner, 32) != 0) {
+          TRACE_ENCLAVE("identity.signer_id checking failed.");
+          TRACE_ENCLAVE(
+            "identity.signer_id %s", my_claims[j].value);
+
+          for (int i = 0; i < 32; i++)
+          {
             TRACE_ENCLAVE(
                 "m_enclave_mrsigner[%d]=0x%0x\n",
                 i,
                 (uint8_t)m_enclave_mrsigner[i]);
-        }
+          }
 
-        TRACE_ENCLAVE("\n\n\n");
+          TRACE_ENCLAVE("\n\n\n");
 
-        for (int i = 0; i < 32; i++)
-        {
+          for (int i = 0; i < 32; i++)
+          {
             TRACE_ENCLAVE(
                 "parsedReport.identity.signer_id)[%d]=0x%0x\n",
                 i,
-                (uint8_t)parsed_report.identity.signer_id[i]);
+                (uint8_t)my_claims[j].value[i]);
+          }
+          TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
+          goto exit;
         }
-        TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
-        goto exit;
+      }
+
+      // Check the enclave's product id and security version
+      // See enc.conf for values specified when signing the enclave.
+      if (strcmp(my_claims[j].name, OE_CLAIM_PRODUCT_ID) == 0) {
+        if (my_claims[j].value[0] != 1)
+        {
+          TRACE_ENCLAVE("identity.product_id checking failed.");
+          goto exit;
+        }
+      }
+
+      if (strcmp(my_claims[j].name, OE_CLAIM_SECURITY_VERSION) == 0) {
+        if (my_claims[j].value < 1)
+        {
+          TRACE_ENCLAVE("identity.security_version checking failed.");
+          goto exit;
+        }
+      }
+
+      // 3) Validate the report data
+      //    The report_data has the hash value of the report data
+      if (strcmp(my_claims[j].name, "report_data") == 0) {
+        if (m_crypto->Sha256(data, data_size, sha256) != 0)
+        {
+          goto exit;
+        }
+
+        if (memcmp(my_claims[j].value, sha256, sizeof(sha256)) != 0)
+        {
+          TRACE_ENCLAVE("SHA256 mismatch.");
+          goto exit;
+        }
+      }
     }
 
-    // Check the enclave's product id and security version
-    // See enc.conf for values specified when signing the enclave.
-    if (parsed_report.identity.product_id[0] != 1)
-    {
-        TRACE_ENCLAVE("identity.product_id checking failed.");
-        goto exit;
-    }
-
-    if (parsed_report.identity.security_version < 1)
-    {
-        TRACE_ENCLAVE("identity.security_version checking failed.");
-        goto exit;
-    }
-
-    // 3) Validate the report data
-    //    The report_data has the hash value of the report data
-    if (m_crypto->Sha256(data, data_size, sha256) != 0)
-    {
-        goto exit;
-    }
-
-    if (memcmp(parsed_report.report_data, sha256, sizeof(sha256)) != 0)
-    {
-        TRACE_ENCLAVE("SHA256 mismatch.");
-        goto exit;
-    }
     ret = true;
     TRACE_ENCLAVE("attestation succeeded.");
-exit:
+  exit:
     return ret;
 }
