@@ -29,12 +29,12 @@ bool Attestation::generate_local_report(
     uint8_t sha256[32];
     oe_result_t result = OE_OK;
 
+    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*) oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
+
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
         goto exit;
     }
-
-    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*) oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
 
     opt_params->sha256 = sha256;
     opt_params->target_info_buffer = target_info_buffer;
