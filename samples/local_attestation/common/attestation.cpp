@@ -34,7 +34,7 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
-    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*)oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
+    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*) oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
 
     opt_params->sha256 = sha256;
     opt_params->target_info_buffer = target_info_buffer;
@@ -59,7 +59,7 @@ bool Attestation::generate_local_report(
 
     return result;
 
-exit:
+  exit:
     return ret;
 }
 
@@ -121,7 +121,6 @@ bool Attestation::attest_local_report(
     }
 
     TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
-
 
 
     // Iterate through returned claims.
