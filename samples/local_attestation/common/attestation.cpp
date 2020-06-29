@@ -36,7 +36,7 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
-    opt_params->sha256 = sha256;
+    opt_params->sha256 = &sha256;
     opt_params->target_info_buffer = target_info_buffer;
     opt_params->target_info_size = target_info_size;
 
