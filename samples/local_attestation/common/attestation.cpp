@@ -57,7 +57,7 @@ bool Attestation::generate_local_report(
         NULL,
         0);
 
-    return result;
+  return result;
 
   exit:
     return ret;
@@ -94,7 +94,7 @@ bool Attestation::attest_local_report(
     if (!oe_is_within_enclave(local_report, report_size))
     {
         TRACE_ENCLAVE("Cannot attest report in host memory. Unsafe.");
-        goto exit;
+        return false;
     }
 
     TRACE_ENCLAVE("report_size = %ld", report_size);
