@@ -1,4 +1,4 @@
-#include <my_plugin_guid.h>
+#include "my_plugin_guid.h"
 
 /* Helper function to create the plugin. */
 oe_attester_t* my_plugin_attester();

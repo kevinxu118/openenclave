@@ -4,7 +4,7 @@
 #include "attestation.h"
 #include <string.h>
 #include "log.h"
-#include <my_plugin_guid.h>
+#include <../host/my_plugin_guid.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
