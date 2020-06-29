@@ -14,7 +14,7 @@ struct my_plugin_attester_config_data_t
 /* Example struct used as input parameters for my_plugin->get_evidence. */
 struct my_plugin_attester_opt_params_t
 {
-    uint8_t* sha256[32];
+    uint8_t sha256[32];
     uint8_t* target_info_buffer;
     size_t target_info_size;
 };
