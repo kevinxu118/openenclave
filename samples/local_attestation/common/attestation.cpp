@@ -5,6 +5,7 @@
 #include <string.h>
 #include "log.h"
 #include <../host/my_plugin_guid.h>
+#include <../host/my_plugin_attester.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
@@ -110,6 +111,8 @@ bool Attestation::attest_local_report(
         required_claims,
         claims_size);
 
+    oe_claim_t* my_claims = *required_claims;
+
     if (result != OE_OK)
     {
         TRACE_ENCLAVE(
@@ -119,11 +122,11 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
-    oe_claim_t* my_claims = *required_claims;
+
 
     // Iterate through returned claims.
 
-    for(size_t j = 0; j < claims_size; j++) {
+    for(size_t j = 0; j < *claims_size; j++) {
 
       // 2) validate the enclave identity's signed_id is the hash of the public
       // signing key that was used to sign an enclave. Check that the enclave was
@@ -168,7 +171,7 @@ bool Attestation::attest_local_report(
       }
 
       if (strcmp(my_claims[j].name, OE_CLAIM_SECURITY_VERSION) == 0) {
-        if (my_claims[j].value < 1)
+        if (*(my_claims[j].value) < 1)
         {
           TRACE_ENCLAVE("identity.security_version checking failed.");
           goto exit;
