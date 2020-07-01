@@ -4,6 +4,8 @@
 #include <openenclave/host.h>
 #include <stdio.h>
 #include "localattestation_u.h"
+#include <my_plugin_attester.h>
+#include <my_plugin_verifier.h>
 
 oe_enclave_t* create_enclave(const char* enclave_path)
 {
@@ -138,6 +140,10 @@ int main(int argc, const char* argv[])
     {
         goto exit;
     }
+
+    // Register attester and verifier
+    oe_register_attester(my_plugin_attester(), NULL, 0);
+    oe_register_verifier(my_plugin_verifier(), NULL, 0);
 
     // attest enclave 2 to enclave 1
     ret = attest_one_enclave_to_the_other(

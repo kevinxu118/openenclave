@@ -15,9 +15,9 @@ build:
 	oeedger8r ../localattestation.edl --untrusted \
 		--search-path $(INCDIR) \
 		--search-path $(INCDIR)/openenclave/edl/sgx
-	$(CC) -g -c $(CFLAGS) $(CINCLUDES) localattestation_u.c
+	$(CC) -g -c $(CFLAGS) $(CINCLUDES) localattestation_u.c my_plugin_attester.c my_plugin_verifier.c
 	$(CXX) -g -c $(CXXFLAGS) $(INCLUDES) host.cpp
-	$(CXX) -o attestation_host host.o localattestation_u.o $(LDFLAGS)
+	$(CXX) -o attestation_host host.o localattestation_u.o my_plugin_attester.o my_plugin_verifier.o $(LDFLAGS)
 
 clean:
 	rm -f attestation_host *.o localattestation_u.*  localattestation_args.h
