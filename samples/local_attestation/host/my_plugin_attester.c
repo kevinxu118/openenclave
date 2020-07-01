@@ -62,7 +62,7 @@ static oe_result_t my_plugin_get_evidence(
 
     result = oe_get_report(
         0, // get a local report
-        &(opt_casted->sha256),
+        opt_casted->sha256,
         sizeof(opt_casted->sha256),
         opt_casted->target_info_buffer,
         opt_casted->target_info_size,
