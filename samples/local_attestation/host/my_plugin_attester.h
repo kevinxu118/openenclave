@@ -1,7 +1,12 @@
 #include "my_plugin_guid.h"
+#include <openenclave/corelibc/stdlib.h>
+
+#ifdef OE_BUILD_ENCLAVE
 
 /* Helper function to create the plugin. */
 oe_attester_t* my_plugin_attester();
+
+#endif
 
 /* Example struct used for config data for my_plugin->on_register. */
 /*
