@@ -4,6 +4,7 @@
 #include "attestation.h"
 #include <string.h>
 #include "log.h"
+#include <openenclave/internal/sgx/plugin.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
@@ -37,14 +38,7 @@ bool Attestation::generate_local_report(
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_get_report(
-        0,      // get a local report
-        sha256, // Store sha256 in report_data field
-        sizeof(sha256),
-        target_info_buffer,
-        target_info_size,
-        &temp_buf,
-        remote_report_buf_size);
+    result = oe_verify_evidence(OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_report failed.");
