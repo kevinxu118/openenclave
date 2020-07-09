@@ -6,6 +6,7 @@
 #include "log.h"
 #include <../host/my_plugin_guid.h>
 #include <../host/my_plugin_attester.h>
+#include <openenclave/internal/sgx/plugin.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
@@ -29,16 +30,16 @@ bool Attestation::generate_local_report(
     uint8_t sha256[32];
     oe_result_t result = OE_OK;
 
-    struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*) oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
+    // struct my_plugin_attester_opt_params_t* opt_params = (my_plugin_attester_opt_params_t*) oe_malloc(sizeof(struct my_plugin_attester_opt_params_t));
 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
         goto exit;
     }
 
-    opt_params->sha256 = sha256;
-    opt_params->target_info_buffer = target_info_buffer;
-    opt_params->target_info_size = target_info_size;
+    // opt_params->sha256 = sha256;
+    // opt_params->target_info_buffer = target_info_buffer;
+    // opt_params->target_info_size = target_info_size;
 
     // To generate a local report that just needs to be attested by another
     // enclave running on the same platform, set flags to 0 in oe_get_report
