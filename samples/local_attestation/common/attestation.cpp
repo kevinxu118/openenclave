@@ -45,17 +45,7 @@ bool Attestation::generate_local_report(
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
 
-    result = oe_get_evidence(
-        MY_PLUGIN_UUID,
-        0,
-        NULL,
-        0,
-        opt_params,
-        sizeof(opt_params),
-        report_buf,
-        remote_report_buf_size,
-        NULL,
-        0);
+    result = oe_get_evidence(OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
 
   return result;
 
@@ -83,7 +73,6 @@ bool Attestation::attest_local_report(
     size_t data_size)
 {
     bool ret = false;
-    uint8_t sha256[32];
     oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
     oe_claim_t** required_claims = (oe_claim_t **)oe_malloc(sizeof(oe_claim_t *));
@@ -91,7 +80,7 @@ bool Attestation::attest_local_report(
 
     // While attesting, the report being attested must not be tampered
     // with. Ensure that it has been copied over to the enclave.
-    if (!oe_is_within_enclave(local_report, report_size))
+    /*if (!oe_is_within_enclave(local_report, report_size))
     {
         TRACE_ENCLAVE("Cannot attest report in host memory. Unsafe.");
         return false;
@@ -191,7 +180,7 @@ bool Attestation::attest_local_report(
           goto exit;
         }
       }
-    }
+    }*/
 
     ret = true;
     TRACE_ENCLAVE("attestation succeeded.");
