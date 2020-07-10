@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "localattestation_u.h"
 
+
 oe_enclave_t* create_enclave(const char* enclave_path)
 {
     oe_enclave_t* enclave = NULL;
