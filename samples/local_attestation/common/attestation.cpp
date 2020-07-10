@@ -38,7 +38,7 @@ bool Attestation::generate_local_report(
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_verify_evidence(OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
+    result = oe_get_evidence(OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_report failed.");
