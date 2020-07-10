@@ -5,6 +5,8 @@
 #include <string.h>
 #include "log.h"
 #include <openenclave/internal/sgx/plugin.h>
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/verifier.h>
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
