@@ -3,6 +3,8 @@
 
 #include <openenclave/host.h>
 #include <stdio.h>
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/verifier.h>
 #include "localattestation_u.h"
 
 
