@@ -39,6 +39,8 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
+    oe_attester_initialize();
+
     oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
 
     // To generate a local report that just needs to be attested by another
@@ -55,6 +57,7 @@ bool Attestation::generate_local_report(
     ret = true;
     TRACE_ENCLAVE("generate_local_report succeeded.");
 exit:
+    oe_attester_shutdown();
     return ret;
 }
 

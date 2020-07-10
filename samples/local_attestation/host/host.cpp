@@ -3,8 +3,6 @@
 
 #include <openenclave/host.h>
 #include <stdio.h>
-#include <openenclave/attestation/attester.h>
-#include <openenclave/attestation/verifier.h>
 #include "localattestation_u.h"
 
 
@@ -142,7 +140,6 @@ int main(int argc, const char* argv[])
         goto exit;
     }
 
-    oe_attester_initialize();
 
     // attest enclave 2 to enclave 1
     ret = attest_one_enclave_to_the_other(
@@ -239,7 +236,6 @@ exit:
     if (enclave_b)
         terminate_enclave(enclave_b);
 
-    oe_attester_shutdown();
 
     printf("Host:  %s \n", (ret == 0) ? "succeeded" : "failed");
     return ret;
