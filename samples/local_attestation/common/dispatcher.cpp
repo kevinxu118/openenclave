@@ -4,6 +4,17 @@
 #include "dispatcher.h"
 #include <openenclave/attestation/sgx/report.h>
 #include <openenclave/enclave.h>
+#include <openenclave/bits/sgx/sgxtypes.h>
+<<<<<<< HEAD
+<<<<<<< HEAD
+#include <openenclave/attestation/attester.h>
+
+=======
+>>>>>>> bafb9cfc4... param change
+=======
+#include <openenclave/attestation/attester.h>
+
+>>>>>>> 776c751c6... test
 
 ecall_dispatcher::ecall_dispatcher(
     const char* name,
@@ -65,7 +76,7 @@ int ecall_dispatcher::get_target_info(
     uint8_t* report = NULL;
     size_t report_size = 0;
     int ret = 1;
-    uint8_t* info_buffer = NULL;
+    sgx_target_info_t* info_buffer = NULL;
 
     TRACE_ENCLAVE("get_target_info");
     if (m_initialized == false)
@@ -76,7 +87,7 @@ int ecall_dispatcher::get_target_info(
 
     // Generate a report for the public key so that the enclave that
     // receives the key can attest this enclave.
-    if (m_attestation->generate_local_report(
+    if (m_attestation->generate_local_attestation_evidence(
             NULL, 0, NULL, 0, &report, &report_size))
     {
         size_t info_size = 0;
@@ -89,7 +100,7 @@ int ecall_dispatcher::get_target_info(
         if (result != OE_OK)
         {
             TRACE_ENCLAVE(
-                "oe_get_target_info: query buffer info failed with %x", result);
+                "oe_get_target_info: query buffer info failed with %s\n", oe_result_str(result));
             goto exit;
         }
         TRACE_ENCLAVE("info_size = %ld", info_size);
@@ -110,7 +121,7 @@ int ecall_dispatcher::get_target_info(
 exit:
 
     if (report)
-        oe_free_report(report);
+        oe_free_evidence(report);
 
     if (ret != 0)
     {
@@ -135,8 +146,8 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
     size_t* local_report_size)
 {
     uint8_t pem_public_key[512];
-    uint8_t* report = NULL;
-    size_t report_size = 0;
+    uint8_t* evidence = NULL;
+    size_t evidence_size = 0;
     uint8_t* key_buf = NULL;
     int ret = 1;
 
@@ -151,24 +162,36 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
 
     // Generate a report for the public key so that the enclave that
     // receives the key can attest this enclave.
-    if (m_attestation->generate_local_report(
+    if (m_attestation->generate_local_attestation_evidence(
             target_info_buffer,
             target_info_size,
             pem_public_key,
             sizeof(pem_public_key),
-            &report,
-            &report_size))
+            &evidence,
+            &evidence_size))
     {
         // Allocate memory on the host and copy the report over.
-        *local_report = (uint8_t*)oe_host_malloc(report_size);
+        *local_report = (uint8_t*)oe_host_malloc(evidence_size);
         if (*local_report == NULL)
         {
             ret = OE_OUT_OF_MEMORY;
             goto exit;
         }
+<<<<<<< HEAD
+<<<<<<< HEAD
+        memcpy(*local_report, evidence, evidence_size);
+        *local_report_size = evidence_size;
+        oe_free_evidence(evidence);
+=======
         memcpy(*local_report, report, report_size);
         *local_report_size = report_size;
-        oe_free_report(report);
+        oe_free_evidence(report);
+>>>>>>> 776c751c6... test
+=======
+        memcpy(*local_report, evidence, evidence_size);
+        *local_report_size = evidence_size;
+        oe_free_evidence(evidence);
+>>>>>>> ce88b01df... more bookkeeping
 
         key_buf = (uint8_t*)oe_host_malloc(512);
         if (key_buf == NULL)
@@ -193,8 +216,18 @@ exit:
 
     if (ret != 0)
     {
+<<<<<<< HEAD
+<<<<<<< HEAD
+        if (evidence)
+            oe_free_evidence(evidence);
+=======
         if (report)
-            oe_free_report(report);
+            oe_free_evidence(report);
+>>>>>>> 776c751c6... test
+=======
+        if (evidence)
+            oe_free_evidence(evidence);
+>>>>>>> ce88b01df... more bookkeeping
 
         if (key_buf)
             oe_host_free(key_buf);
@@ -220,7 +253,7 @@ int ecall_dispatcher::verify_report_and_set_pubkey(
     }
 
     // Attest the report and accompanying key.
-    if (m_attestation->attest_local_report(
+    if (m_attestation->attest_local_evidence(
             local_report, local_report_size, pem_key, pem_key_size))
     {
         memcpy(
