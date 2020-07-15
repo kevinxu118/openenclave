@@ -4,6 +4,7 @@
 #include "dispatcher.h"
 #include <openenclave/attestation/sgx/report.h>
 #include <openenclave/enclave.h>
+#include <openenclave/bits/sgx/sgxtypes.h>
 
 ecall_dispatcher::ecall_dispatcher(
     const char* name,
@@ -65,7 +66,7 @@ int ecall_dispatcher::get_target_info(
     uint8_t* report = NULL;
     size_t report_size = 0;
     int ret = 1;
-    uint8_t* info_buffer = NULL;
+    sgx_target_info_t* info_buffer = NULL;
 
     TRACE_ENCLAVE("get_target_info");
     if (m_initialized == false)
