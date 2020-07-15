@@ -89,7 +89,7 @@ int ecall_dispatcher::get_target_info(
         if (result != OE_OK)
         {
             TRACE_ENCLAVE(
-                "oe_get_target_info: query buffer info failed with %x", result);
+                "oe_get_target_info: query buffer info failed with %s\n", oe_result_str(result));
             goto exit;
         }
         TRACE_ENCLAVE("info_size = %ld", info_size);
