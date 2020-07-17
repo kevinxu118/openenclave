@@ -53,7 +53,7 @@ bool Attestation::generate_local_report(
         TRACE_ENCLAVE("oe_get_report failed.");
         goto exit;
     }
-    //*report_buf = temp_buf;
+
     ret = true;
     TRACE_ENCLAVE("generate_local_report succeeded.");
 exit:
