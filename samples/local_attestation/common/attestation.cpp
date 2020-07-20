@@ -9,6 +9,7 @@
 #include <openenclave/attestation/verifier.h>
 
 static oe_uuid_t sgx_local_uuid = {OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION};
+oe_uuid_t selected_format;
 
 Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 {
@@ -32,7 +33,7 @@ bool Attestation::generate_local_report(
     uint8_t sha256[32];
     oe_result_t result = OE_OK;
     uint8_t* temp_buf = NULL;
-    oe_uuid_t selected_format;
+    
 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
@@ -47,7 +48,7 @@ bool Attestation::generate_local_report(
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_get_evidence(&selected_format, OE_EVIDENCE_FLAGS_EMBED_FORMAT_ID, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&selected_format, NULL, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_report failed.");
