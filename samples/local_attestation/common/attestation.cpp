@@ -102,7 +102,7 @@ bool Attestation::attest_local_report(
 
     // 1)  Validate the report's trustworthiness
     // Verify the report to ensure its authenticity.
-    result = oe_verify_evidence(NULL, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
+    result = oe_verify_evidence(&selected_format, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_verify_report failed (%s).\n", oe_result_str(result));
