@@ -47,7 +47,7 @@ bool Attestation::generate_local_report(
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_get_evidence(&selected_format, NULL, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&selected_format, OE_EVIDENCE_FLAGS_EMBED_FORMAT_ID, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_report failed.");
@@ -84,6 +84,8 @@ bool Attestation::attest_local_report(
     uint8_t sha256[32];
     oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
+    oe_claim_t* claims = NULL;
+    size_t claims_length = 0;
 
     // While attesting, the report being attested must not be tampered
     // with. Ensure that it has been copied over to the enclave.
@@ -95,9 +97,11 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("report_size = %ld", report_size);
 
+    oe_verifier_initialize();
+
     // 1)  Validate the report's trustworthiness
     // Verify the report to ensure its authenticity.
-    result = oe_verify_report(local_report, report_size, &parsed_report);
+    result = oe_verify_evidence(NULL, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_verify_report failed (%s).\n", oe_result_str(result));
@@ -150,18 +154,6 @@ bool Attestation::attest_local_report(
         goto exit;
     }
 
-    // 3) Validate the report data
-    //    The report_data has the hash value of the report data
-    if (m_crypto->Sha256(data, data_size, sha256) != 0)
-    {
-        goto exit;
-    }
-
-    if (memcmp(parsed_report.report_data, sha256, sizeof(sha256)) != 0)
-    {
-        TRACE_ENCLAVE("SHA256 mismatch.");
-        goto exit;
-    }
     ret = true;
     TRACE_ENCLAVE("attestation succeeded.");
 exit:
