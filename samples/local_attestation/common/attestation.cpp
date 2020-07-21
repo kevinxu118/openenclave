@@ -27,7 +27,7 @@ bool Attestation::generate_local_report(
     const uint8_t* data,
     const size_t data_size,
     uint8_t** report_buf,
-    size_t* remote_report_buf_size)
+    size_t* local_report_buf_size)
 {
     bool ret = false;
     uint8_t sha256[32];
@@ -48,7 +48,7 @@ bool Attestation::generate_local_report(
     // enclave running on the same platform, set flags to 0 in oe_get_report
     // call. This uses the EREPORT instruction to generate this enclave's local
     // report.
-    result = oe_get_evidence(&selected_format, NULL, NULL, 0, NULL, 0, report_buf, remote_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&selected_format, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_report failed.");
@@ -114,7 +114,7 @@ bool Attestation::attest_local_report(
     // 2) validate the enclave identity's signed_id is the hash of the public
     // signing key that was used to sign an enclave. Check that the enclave was
     // signed by an trusted entity.
-    if (memcmp(parsed_report.identity.signer_id, m_enclave_mrsigner, 32) != 0)
+    if (memcmp(claims[4].value, m_enclave_mrsigner, 32) != 0)
     {
         TRACE_ENCLAVE("identity.signer_id checking failed.");
         TRACE_ENCLAVE(
@@ -143,7 +143,7 @@ bool Attestation::attest_local_report(
 
     // Check the enclave's product id and security version
     // See enc.conf for values specified when signing the enclave.
-    if (parsed_report.identity.product_id[0] != 1)
+    if (claims[5].value[0] != 1)
     {
         TRACE_ENCLAVE("identity.product_id checking failed.");
         goto exit;
