@@ -149,7 +149,7 @@ bool Attestation::attest_local_report(
         goto exit;
     }
 
-    if (parsed_report.identity.security_version < 1)
+    if (claims[1].value[0] < 1)
     {
         TRACE_ENCLAVE("identity.security_version checking failed.");
         goto exit;
