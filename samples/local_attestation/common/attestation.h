@@ -37,7 +37,7 @@ class Attestation
      * report_data field.
      */
     bool attest_local_report(
-        const uint8_t* local_report,
+        uint8_t* local_report,
         size_t report_size,
         const uint8_t* data,
         size_t data_size);
