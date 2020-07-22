@@ -32,9 +32,7 @@ bool Attestation::generate_local_report(
 {
     bool ret = false;
     uint8_t sha256[32];
-    oe_result_t result = OE_OK;
-    uint8_t* temp_buf = NULL;
-    
+    oe_result_t result = OE_OK;    
 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
@@ -60,7 +58,6 @@ bool Attestation::generate_local_report(
     ret = true;
     TRACE_ENCLAVE("generate_local_report succeeded.");
 exit:
-    oe_attester_shutdown();
     return ret;
 }
 
@@ -78,7 +75,7 @@ exit:
  * report_data field.
  */
 bool Attestation::attest_local_report(
-    uint8_t* local_report,
+    const uint8_t* local_report,
     size_t report_size,
     const uint8_t* data,
     size_t data_size)
@@ -160,9 +157,9 @@ bool Attestation::attest_local_report(
     ret = true;
     TRACE_ENCLAVE("attestation succeeded.");
 exit:
-    // Shut down verifier and free evidence and claims.
+    // Shut down attester/verifier and free claims.
+    oe_attester_shutdown();
     oe_verifier_shutdown();
-    oe_free_evidence(local_report);
     oe_free_claims(claims, claims_length);
     return ret;
 }
