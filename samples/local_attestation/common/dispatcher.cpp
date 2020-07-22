@@ -5,6 +5,8 @@
 #include <openenclave/attestation/sgx/report.h>
 #include <openenclave/enclave.h>
 #include <openenclave/bits/sgx/sgxtypes.h>
+#include <openenclave/attestation/attester.h>
+
 
 ecall_dispatcher::ecall_dispatcher(
     const char* name,
@@ -112,7 +114,7 @@ int ecall_dispatcher::get_target_info(
 exit:
 
     if (report)
-        oe_free_report(report);
+        oe_free_evidence(report);
 
     if (ret != 0)
     {
@@ -170,7 +172,7 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
         }
         memcpy(*local_report, report, report_size);
         *local_report_size = report_size;
-        oe_free_report(report);
+        oe_free_evidence(report);
 
         key_buf = (uint8_t*)oe_host_malloc(512);
         if (key_buf == NULL)
@@ -196,7 +198,7 @@ exit:
     if (ret != 0)
     {
         if (report)
-            oe_free_report(report);
+            oe_free_evidence(report);
 
         if (key_buf)
             oe_host_free(key_buf);
