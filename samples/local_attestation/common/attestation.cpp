@@ -8,6 +8,7 @@
 #include <openenclave/attestation/attester.h>
 #include <openenclave/attestation/verifier.h>
 
+// SGX local attestation UUID.
 static oe_uuid_t sgx_local_uuid = {OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION};
 oe_uuid_t selected_format;
 
@@ -40,6 +41,7 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
+    // Initialize attester and use the SGX plugin.
     oe_attester_initialize();
 
     oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
@@ -51,7 +53,7 @@ bool Attestation::generate_local_report(
     result = oe_get_evidence(&selected_format, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
-        TRACE_ENCLAVE("oe_get_report failed.");
+        TRACE_ENCLAVE("oe_get_evidence failed.");
         goto exit;
     }
 
@@ -76,7 +78,7 @@ exit:
  * report_data field.
  */
 bool Attestation::attest_local_report(
-    const uint8_t* local_report,
+    uint8_t* local_report,
     size_t report_size,
     const uint8_t* data,
     size_t data_size)
@@ -105,20 +107,20 @@ bool Attestation::attest_local_report(
     result = oe_verify_evidence(&selected_format, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
     if (result != OE_OK)
     {
-        TRACE_ENCLAVE("oe_verify_report failed (%s).\n", oe_result_str(result));
+        TRACE_ENCLAVE("oe_verify_evidence failed (%s).\n", oe_result_str(result));
         goto exit;
     }
 
-    TRACE_ENCLAVE("oe_verify_report succeeded\n");
+    TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
     // 2) validate the enclave identity's signed_id is the hash of the public
     // signing key that was used to sign an enclave. Check that the enclave was
     // signed by an trusted entity.
     if (memcmp(claims[4].value, m_enclave_mrsigner, 32) != 0)
     {
-        TRACE_ENCLAVE("identity.signer_id checking failed.");
+        TRACE_ENCLAVE("signer_id checking failed.");
         TRACE_ENCLAVE(
-            "identity.signer_id %s", parsed_report.identity.signer_id);
+            "signer_id %s", parsed_report.identity.signer_id);
 
         for (int i = 0; i < 32; i++)
         {
@@ -133,7 +135,7 @@ bool Attestation::attest_local_report(
         for (int i = 0; i < 32; i++)
         {
             TRACE_ENCLAVE(
-                "parsedReport.identity.signer_id)[%d]=0x%0x\n",
+                "signer_id)[%d]=0x%0x\n",
                 i,
                 (uint8_t)parsed_report.identity.signer_id[i]);
         }
@@ -145,18 +147,22 @@ bool Attestation::attest_local_report(
     // See enc.conf for values specified when signing the enclave.
     if (claims[5].value[0] != 1)
     {
-        TRACE_ENCLAVE("identity.product_id checking failed.");
+        TRACE_ENCLAVE("product_id checking failed.");
         goto exit;
     }
 
     if (claims[1].value[0] < 1)
     {
-        TRACE_ENCLAVE("identity.security_version checking failed.");
+        TRACE_ENCLAVE("security_version checking failed.");
         goto exit;
     }
 
     ret = true;
     TRACE_ENCLAVE("attestation succeeded.");
 exit:
+    // Shut down verifier and free evidence and claims.
+    oe_verifier_shutdown();
+    oe_free_evidence(local_report);
+    oe_free_claims(claims, claims_length);
     return ret;
 }
