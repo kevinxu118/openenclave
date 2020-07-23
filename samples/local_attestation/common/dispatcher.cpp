@@ -138,8 +138,8 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
     size_t* local_report_size)
 {
     uint8_t pem_public_key[512];
-    uint8_t* report = NULL;
-    size_t report_size = 0;
+    uint8_t* evidence = NULL;
+    size_t evidence_size = 0;
     uint8_t* key_buf = NULL;
     int ret = 1;
 
@@ -159,19 +159,19 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
             target_info_size,
             pem_public_key,
             sizeof(pem_public_key),
-            &report,
-            &report_size))
+            &evidence,
+            &evidence_size))
     {
         // Allocate memory on the host and copy the report over.
-        *local_report = (uint8_t*)oe_host_malloc(report_size);
+        *local_report = (uint8_t*)oe_host_malloc(evidence_size);
         if (*local_report == NULL)
         {
             ret = OE_OUT_OF_MEMORY;
             goto exit;
         }
-        memcpy(*local_report, report, report_size);
-        *local_report_size = report_size;
-        oe_free_evidence(report);
+        memcpy(*local_report, evidence, evidence_size);
+        *local_report_size = evidence_size;
+        oe_free_evidence(evidence);
 
         key_buf = (uint8_t*)oe_host_malloc(512);
         if (key_buf == NULL)
@@ -196,8 +196,8 @@ exit:
 
     if (ret != 0)
     {
-        if (report)
-            oe_free_evidence(report);
+        if (evidence)
+            oe_free_evidence(evidence);
 
         if (key_buf)
             oe_host_free(key_buf);

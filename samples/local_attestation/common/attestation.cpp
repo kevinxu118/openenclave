@@ -33,6 +33,8 @@ bool Attestation::generate_local_report(
     bool ret = false;
     uint8_t sha256[32];
     oe_result_t result = OE_OK;    
+    oe_result_t attester_result = OE_OK;
+    oe_result_t attester_format_result = OE_OK;
 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
@@ -40,9 +42,20 @@ bool Attestation::generate_local_report(
     }
 
     // Initialize attester and use the SGX plugin.
-    oe_attester_initialize();
+    attester_result = oe_attester_initialize();
+    if (attester_result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_attester_initialize failed.");
+        goto exit;
+    }
 
-    oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
+    // Select the attestation format.
+    attester_format_result = oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
+    if (attester_format_result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_attester_select_format failed.");
+        goto exit;
+    }
 
     // Generate evidence based on the format selected by the attester.
     result = oe_get_evidence(&selected_format, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
@@ -81,6 +94,7 @@ bool Attestation::attest_local_report(
     uint8_t sha256[32];
     oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
+    oe_result_t verifier_result = OE_OK;
     oe_claim_t* claims = NULL;
     size_t claims_length = 0;
 
@@ -94,7 +108,12 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("report_size = %ld", report_size);
 
-    oe_verifier_initialize();
+    verifier_result = oe_verifier_initialize();
+    if (verifier_result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_verifier_initialize failed.");
+        goto exit;
+    }
 
     // 1)  Validate the report's trustworthiness
     // Verify the report to ensure its authenticity.
