@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "localattestation_u.h"
 
-
 oe_enclave_t* create_enclave(const char* enclave_path)
 {
     oe_enclave_t* enclave = NULL;
@@ -140,7 +139,6 @@ int main(int argc, const char* argv[])
         goto exit;
     }
 
-
     // attest enclave 2 to enclave 1
     ret = attest_one_enclave_to_the_other(
         "enclave_a", enclave_a, "enclave_b", enclave_b);
@@ -235,7 +233,6 @@ exit:
 
     if (enclave_b)
         terminate_enclave(enclave_b);
-
 
     printf("Host:  %s \n", (ret == 0) ? "succeeded" : "failed");
     return ret;

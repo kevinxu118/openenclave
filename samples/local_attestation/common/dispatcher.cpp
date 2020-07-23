@@ -82,7 +82,6 @@ int ecall_dispatcher::get_target_info(
     if (m_attestation->generate_local_report(
             NULL, 0, NULL, 0, &report, &report_size))
     {
-        
         size_t info_size = 0;
 
         TRACE_ENCLAVE("report_size = %ld", report_size);

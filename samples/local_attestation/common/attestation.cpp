@@ -44,10 +44,7 @@ bool Attestation::generate_local_report(
 
     oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
 
-    // To generate a local report that just needs to be attested by another
-    // enclave running on the same platform, set flags to 0 in oe_get_report
-    // call. This uses the EREPORT instruction to generate this enclave's local
-    // report.
+    // Generates evidence based on the format selected by the attester.
     result = oe_get_evidence(&selected_format, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
