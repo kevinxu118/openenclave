@@ -49,16 +49,17 @@ bool Attestation::generate_local_report(
         goto exit;
     }
 
+    /*
     // Select the attestation format.
     attester_format_result = oe_attester_select_format(&sgx_local_uuid, 1, &selected_format);
     if (attester_format_result != OE_OK)
     {
         TRACE_ENCLAVE("oe_attester_select_format failed.");
         goto exit;
-    }
+    }*/
 
     // Generate evidence based on the format selected by the attester.
-    result = oe_get_evidence(&selected_format, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&sgx_local_uuid, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_evidence failed.");
