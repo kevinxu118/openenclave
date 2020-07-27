@@ -59,7 +59,7 @@ bool Attestation::generate_local_report(
     // }
 
     // Generate evidence based on the format selected by the attester.
-    result = oe_get_evidence(&sgx_local_uuid, OE_EVIDENCE_FLAGS_EMBED_FORMAT_ID , NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&sgx_local_uuid, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_evidence failed.");
@@ -118,7 +118,7 @@ bool Attestation::attest_local_report(
 
     // 1)  Validate the report's trustworthiness
     // Verify the report to ensure its authenticity.
-    result = oe_verify_evidence(NULL, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
+    result = oe_verify_evidence(&sgx_local_uuid, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_verify_evidence failed (%s).\n", oe_result_str(result));
