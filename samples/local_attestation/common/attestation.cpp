@@ -127,48 +127,54 @@ bool Attestation::attest_local_report(
 
     TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
-    // 2) validate the enclave identity's signed_id is the hash of the public
-    // signing key that was used to sign an enclave. Check that the enclave was
-    // signed by an trusted entity.
-    if (memcmp(claims[4].value, m_enclave_mrsigner, 32) != 0)
+    // Iterate through list of claims.
+    for (size_t i = 0; i < OE_REQUIRED_CLAIMS_COUNT; i++) 
     {
-        TRACE_ENCLAVE("signer_id checking failed.");
-        TRACE_ENCLAVE(
-            "signer_id %s", parsed_report.identity.signer_id);
-
-        for (int i = 0; i < 32; i++)
+        switch(claims[i].name)
         {
-            TRACE_ENCLAVE(
-                "m_enclave_mrsigner[%d]=0x%0x\n",
-                i,
-                (uint8_t)m_enclave_mrsigner[i]);
+            case OE_CLAIM_SIGNER_ID:
+                // Validate the signer id.
+                if (memcmp(claims[i].value, m_enclave_mrsigner, 32) != 0)
+                {
+                    TRACE_ENCLAVE("signer_id checking failed.");
+                    TRACE_ENCLAVE(
+                        "signer_id %s", parsed_report.identity.signer_id);
+
+                    for (int i = 0; i < 32; i++)
+                    {
+                        TRACE_ENCLAVE(
+                            "m_enclave_mrsigner[%d]=0x%0x\n",
+                            i,
+                            (uint8_t)m_enclave_mrsigner[i]);
+                    }
+
+                    TRACE_ENCLAVE("\n\n\n");
+
+                    for (int i = 0; i < 32; i++)
+                    {
+                        TRACE_ENCLAVE(
+                            "signer_id)[%d]=0x%0x\n",
+                            i,
+                            (uint8_t)parsed_report.identity.signer_id[i]);
+                    }
+                    TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
+                    goto exit;
+                }
+            case OE_CLAIM_PRODUCT_ID:
+                // Check the enclave's product id.
+                if (claims[i].value[0] != 1)
+                {
+                    TRACE_ENCLAVE("product_id checking failed.");
+                    goto exit;
+                }
+            case OE_CLAIM_SECURITY_VERSION:
+                // Check the enclave's security version.
+                if (claims[1].value[0] < 1)
+                {
+                    TRACE_ENCLAVE("security_version checking failed.");
+                    goto exit;
+                }
         }
-
-        TRACE_ENCLAVE("\n\n\n");
-
-        for (int i = 0; i < 32; i++)
-        {
-            TRACE_ENCLAVE(
-                "signer_id)[%d]=0x%0x\n",
-                i,
-                (uint8_t)parsed_report.identity.signer_id[i]);
-        }
-        TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
-        goto exit;
-    }
-
-    // Check the enclave's product id and security version
-    // See enc.conf for values specified when signing the enclave.
-    if (claims[5].value[0] != 1)
-    {
-        TRACE_ENCLAVE("product_id checking failed.");
-        goto exit;
-    }
-
-    if (claims[1].value[0] < 1)
-    {
-        TRACE_ENCLAVE("security_version checking failed.");
-        goto exit;
     }
 
     ret = true;
