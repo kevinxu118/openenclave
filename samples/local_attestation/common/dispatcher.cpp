@@ -224,7 +224,7 @@ int ecall_dispatcher::verify_report_and_set_pubkey(
     }
 
     // Attest the report and accompanying key.
-    if (m_attestation->attest_local_report(
+    if (m_attestation->attest_local_evidence(
             local_report, local_report_size, pem_key, pem_key_size))
     {
         memcpy(
