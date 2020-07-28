@@ -19,16 +19,15 @@ Attestation::Attestation(Crypto* crypto, uint8_t* enclave_mrsigner)
 }
 
 /**
- * Generate a report for the given data. The SHA256 digest of the data is
- * stored in the report_data field of the generated report.
+ * Generate evidence for the given data.
  */
-bool Attestation::generate_local_report(
+bool Attestation::generate_local_attestation_evidence(
     uint8_t* target_info_buffer,
     size_t target_info_size,
     const uint8_t* data,
     const size_t data_size,
-    uint8_t** report_buf,
-    size_t* local_report_buf_size)
+    uint8_t** evidence_buf,
+    size_t* local_evidence_buf_size)
 {
     bool ret = false;
     uint8_t sha256[32];
@@ -59,7 +58,7 @@ bool Attestation::generate_local_report(
     // }
 
     // Generate evidence based on the format selected by the attester.
-    result = oe_get_evidence(&sgx_local_uuid, NULL, NULL, 0, target_info_buffer, target_info_size, report_buf, local_report_buf_size, NULL, 0);
+    result = oe_get_evidence(&sgx_local_uuid, NULL, NULL, 0, target_info_buffer, target_info_size, evidence_buf, local_evidence_buf_size, NULL, 0);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_get_evidence failed.");
@@ -67,47 +66,43 @@ bool Attestation::generate_local_report(
     }
 
     ret = true;
-    TRACE_ENCLAVE("generate_local_report succeeded.");
+    TRACE_ENCLAVE("generate_local_attestation_evidence succeeded.");
 exit:
     return ret;
 }
 
 /**
- * Attest the given local report and accompanying data. It consists of the
+ * Attest the given evidence and accompanying data. It consists of the
  * following three steps:
  *
- * 1) The local report is first attested using the oe_verify_report API. This
- * ensures the authenticity of the enclave that generated the report.
- * 2) Next, to establish trust of the enclave that generated the report,
+ * 1) The local evidence is first attested using the oe_verify_evidence API. This
+ * ensures the authenticity of the enclave that generated the evidence.
+ * 2) Next, to establish trust of the enclave that generated the evidence,
  * the mrsigner, product_id, isvsvn values are checked to  see if they are
  * predefined trusted values.
- * 3) Once the enclave's trust has been established, the validity of
- * accompanying data is ensured by comparing its SHA256 digest against the
- * report_data field.
  */
-bool Attestation::attest_local_report(
-    const uint8_t* local_report,
-    size_t report_size,
+bool Attestation::attest_local_evidence(
+    const uint8_t* local_evidence,
+    size_t evidence_size,
     const uint8_t* data,
     size_t data_size)
 {
     bool ret = false;
     uint8_t sha256[32];
-    oe_report_t parsed_report = {0};
     oe_result_t result = OE_OK;
     oe_result_t verifier_result = OE_OK;
     oe_claim_t* claims = NULL;
     size_t claims_length = 0;
 
-    // While attesting, the report being attested must not be tampered
+    // While attesting, the evidence being attested must not be tampered
     // with. Ensure that it has been copied over to the enclave.
-    if (!oe_is_within_enclave(local_report, report_size))
+    if (!oe_is_within_enclave(local_evidence, evidence_size))
     {
-        TRACE_ENCLAVE("Cannot attest report in host memory. Unsafe.");
+        TRACE_ENCLAVE("Cannot attest evidence in host memory. Unsafe.");
         goto exit;
     }
 
-    TRACE_ENCLAVE("report_size = %ld", report_size);
+    TRACE_ENCLAVE("evidence_size = %ld", evidence_size);
 
     verifier_result = oe_verifier_initialize();
     if (verifier_result != OE_OK)
@@ -116,9 +111,9 @@ bool Attestation::attest_local_report(
         goto exit;
     }
 
-    // 1)  Validate the report's trustworthiness
-    // Verify the report to ensure its authenticity.
-    result = oe_verify_evidence(&sgx_local_uuid, local_report, report_size, NULL, 0, NULL, 0, &claims, &claims_length);
+    // 1)  Validate the evidence's trustworthiness
+    // Verify the evidence to ensure its authenticity.
+    result = oe_verify_evidence(&sgx_local_uuid, local_evidence, evidence_size, NULL, 0, NULL, 0, &claims, &claims_length);
     if (result != OE_OK)
     {
         TRACE_ENCLAVE("oe_verify_evidence failed (%s).\n", oe_result_str(result));
@@ -128,7 +123,7 @@ bool Attestation::attest_local_report(
     TRACE_ENCLAVE("oe_verify_evidence succeeded\n");
 
     // Iterate through list of claims.
-    for (size_t i = 0; i < OE_REQUIRED_CLAIMS_COUNT; i++) 
+    for (size_t i = 0; i < claims_length; i++) 
     {
         if (strcmp(claims[i].name, OE_CLAIM_SIGNER_ID) == 0)
         {
@@ -137,24 +132,24 @@ bool Attestation::attest_local_report(
             {
                 TRACE_ENCLAVE("signer_id checking failed.");
                 TRACE_ENCLAVE(
-                    "signer_id %s", parsed_report.identity.signer_id);
+                    "signer_id %s", claims[i].value);
 
-                for (int i = 0; i < 32; i++)
+                for (int j = 0; j < 32; j++)
                 {
                     TRACE_ENCLAVE(
                         "m_enclave_mrsigner[%d]=0x%0x\n",
-                        i,
-                        (uint8_t)m_enclave_mrsigner[i]);
+                        j,
+                        (uint8_t)m_enclave_mrsigner[j]);
                 }
 
                 TRACE_ENCLAVE("\n\n\n");
 
-                for (int i = 0; i < 32; i++)
+                for (int j = 0; j < 32; j++)
                 {
                     TRACE_ENCLAVE(
                         "signer_id)[%d]=0x%0x\n",
                         i,
-                        (uint8_t)parsed_report.identity.signer_id[i]);
+                        (uint8_t)claims[i].value[j]);
                 }
                 TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
                 goto exit;

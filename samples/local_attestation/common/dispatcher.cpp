@@ -79,7 +79,7 @@ int ecall_dispatcher::get_target_info(
 
     // Generate a report for the public key so that the enclave that
     // receives the key can attest this enclave.
-    if (m_attestation->generate_local_report(
+    if (m_attestation->generate_local_attestation_evidence(
             NULL, 0, NULL, 0, &report, &report_size))
     {
         
@@ -155,7 +155,7 @@ int ecall_dispatcher::get_targeted_report_with_pubkey(
 
     // Generate a report for the public key so that the enclave that
     // receives the key can attest this enclave.
-    if (m_attestation->generate_local_report(
+    if (m_attestation->generate_local_attestation_evidence(
             target_info_buffer,
             target_info_size,
             pem_public_key,
