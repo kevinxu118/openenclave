@@ -148,7 +148,7 @@ bool Attestation::attest_local_evidence(
                 {
                     TRACE_ENCLAVE(
                         "signer_id)[%d]=0x%0x\n",
-                        i,
+                        j,
                         (uint8_t)claims[i].value[j]);
                 }
                 TRACE_ENCLAVE("m_enclave_mrsigner %s", m_enclave_mrsigner);
