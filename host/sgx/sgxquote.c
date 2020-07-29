@@ -3,10 +3,7 @@
 
 #include "sgxquote.h"
 #include <openenclave/attestation/sgx/evidence.h>
-<<<<<<< HEAD
 #include <openenclave/bits/sgx/sgxtypes.h>
-=======
->>>>>>> Add support of OE report / SGX quote and flat buffer custom claims
 #include <openenclave/internal/defs.h>
 #include <openenclave/internal/raise.h>
 #include <openenclave/internal/sgx/plugin.h>

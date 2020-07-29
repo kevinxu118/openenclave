@@ -16,11 +16,7 @@
 #include "quote.h"
 #include "report.h"
 
-<<<<<<< HEAD
 #if !defined(OE_BUILD_ENCLAVE)
-=======
-#if defined(OE_LINK_SGX_DCAP_QL) && !defined(OE_BUILD_ENCLAVE)
->>>>>>> Add support of OE report / SGX quote and flat buffer custom claims
 #include "../../host/sgx/sgxquoteprovider.h"
 #endif
 
